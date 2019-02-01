@@ -1,34 +1,3 @@
 # Realistic lightning simulation model
 
-![](./vid/lightning_000.png){width=500}
-
-## About
-
-This project implements Dielectric Breakdown Model - a physical model simulating realistic-looking lightning. It's based loosely on a scientific paper [Fast Animation of Lightning Using An Adaptive Mesh, 2007](http://gamma.cs.unc.edu/FAST_LIGHTNING/lightning_tvcg_2007.pdf).
-
-## The model
-
-The model attempts to realistically simulate an electric discharge happening in a dielectric medium such as air. The setup consists of an insulator with electric potential 0 (red), grounded counductor with electric potential 1 (blue) and dielectric medium that got ionized and is now conducting with electric potential 0 (green).
-
-At the start of the simulation there is exactly one green cell - source of the electric discharge. In each tick the electric potential in cells is computed according to the Poisson equation \(\nabla^2 \Phi = \rho\) with boundary conditions set by the colored cells. Then, from the set of unionized cells connected to the ionized (green) cells one is chosen as the point of the next breakdown. The probability of breakdown in each cell is set according to the function: \(p_i = \frac{\Phi_i^\eta}{\sum_{j=1}^n\Phi_j^\eta}\). To put it simply, greater the electric potential, closer the cell is to the grounded conductor and, thus, more likely to be the next breakdown point. The parameter \(\eta\) corresponds to "branchiness" of the discharge.
-
-The procedure is continued until the discharge reaches the grounded conductor - then a small charge \(\rho\) is deposited along the path of the discharge, the discharge is cleared except for the starting point and the process is repeated to compute the next frame.
-
-## The algorithm
-
-The model is discretized on a rectangular mesh with square cells with 8-fold neighbourhood. It follows the model relatively closely, but since the goal was to generate only realistic-looking images and not accurate images and to do it fast, there are a few tradeoffs.
-
-The first tradeoff is in the random probing. Instead of choosing exactly one cell to break down in the current iteration, it is determined for each cell whether it breaks down with the original probability. It results in expected number of cells being added to the discharge in each iteration being one and allows for a good parallellization of this step.
-
-### The multigrid solver
-
-The core of the algoritm is a Poisson equation solver. It uses a simple discretization with a cross-shaped stencil and a configurable depth multigrid solver for the finite difference method. The multigrid solver has been determined to be the fastest one while having configurable accuracy - since the solution does not have to be **exact** but only _look good_, a significant speedup can be achieved this way.
-
-The multigrid solver uses on each level several iterations of Gauss-Siedel method since the equation is a linear one. Additionally, for easy parallelization, the relaxation is executed first on odd and then on even fields of the two-dimensional board. This trick enables lack of the double buffering and thus reduces the memory footprint of the solution twofold. This solution was, again, chosen for speed over more complicated ones.
-
-
-## The exact setup
-
-In my demonstration I'm using \(192\) by \(128\) grid with branching parameter \(eta = 2\) and residual charge left by a discharge \(\rho = 0.001\). The multigrid solver uses \(4\) layers and \(10\) iterations of Gauss-Siedel method are used on each iteration. All of the parameters were chosen experimentally or based on the literature.
-
-The solver is also capable of running in an adaptive mode where the Gauss-Siedel is ran until it converges (the residual is sufficiently small). This mode though is significantly slower and does not perform noticably better.
+[readme here](./readme.ipynb)
